@@ -5,71 +5,52 @@ import { getAllTestimonials } from '../utils/local-data.js';
 import BannerImage from '../assets/home-banner-background.png';
 
 const Testimonials = () => {
-    const [testimonials, setTestimonials] = useState([]);
+    const [testimonials, setTestimonials] = useState([]); // State untuk daftar testimonial
+    const [activeTestimonial, setActiveTestimonial] = useState(null); // State untuk testimonial yang sedang aktif
 
+    // Ambil data testimonial saat pertama kali komponen dimuat
     useEffect(() => {
-        const data = getAllTestimonials();
+        const data = getAllTestimonials() || []; // Fallback jika data kosong
         setTestimonials(data);
 
-        const handleLoad = () => {
-            const clientTabItems = document.querySelectorAll('.client-item');
-            const showDiv = document.querySelector('.show-info');
-
-            // Jika elemen tidak ditemukan, hentikan eksekusi
-            if (!clientTabItems || !showDiv) return;
-
-            clientTabItems.forEach((item) => {
-                item.addEventListener('click', () => {
-                    showInfo(item);
-                });
-            });
-
-            const showInfo = (item) => {
-                showDiv.querySelector('.show-img img').src = item.querySelector('.client-thumbnail img').src;
-                showDiv.querySelector('.show-name').innerHTML = item.querySelector('.client-name').innerHTML;
-                showDiv.querySelector('.show-navigation').innerHTML = item.querySelector('.client-designation').innerHTML;
-                showDiv.querySelector('.show-description').innerHTML = item.querySelector('.client-description').innerHTML;
-                setActiveTab(item);
-            };
-
-            const setActiveTab = (item) => {
-                clientTabItems.forEach((tab) => {
-                    tab.classList.remove('active'); // Reset active tab
-                });
-                item.classList.add('active'); // Set active tab
-            };
-
-            if (clientTabItems.length > 0) {
-                showInfo(clientTabItems[0]); // Set default active tab
-            }
-        };
-
-        // Tambahkan event listener pada saat DOM selesai dirender
-        window.addEventListener('load', handleLoad);
-
-        // Bersihkan event listener saat komponen di-unmount
-        return () => {
-            window.removeEventListener('load', handleLoad);
-        };
+        // Set testimonial pertama sebagai default aktif jika ada data
+        if (data.length > 0) {
+            setActiveTestimonial(data[0]);
+        }
     }, []);
+
+    // Fungsi untuk mengubah testimonial aktif saat diklik dan ini adalah kunci berjalan nya code
+    const handleClick = (testimonial) => {
+        setActiveTestimonial(testimonial);
+    };
 
     return (
         <div className="wrapper">
             <Navbar />
             <div className="testimonials">
+                {/* Bagian judul */}
                 <div className="title">
-                    <h2>Our <span>Testimonials</span></h2>
+                    <h2>
+                        Our <span>Testimonials</span>
+                    </h2>
                     <h3>Our Clients</h3>
                 </div>
 
+                {/* Bagian konten */}
                 <div className="content">
                     <div className="clients-list">
                         <img className="testimonials-image" src={BannerImage} alt="" />
+
+                        {/* Daftar testimonial */}
                         <div className="clients-tabs">
                             {testimonials.map((testimonial) => (
-                                <div key={testimonial.id} className="client-item">
+                                <div
+                                    key={testimonial.id}
+                                    className={`client-item ${activeTestimonial?.id === testimonial.id ? 'active' : ''}`}
+                                    onClick={() => handleClick(testimonial)}
+                                >
                                     <div className="client-thumbnail">
-                                        <img src={testimonial.image} alt={testimonial.name} />
+                                        <img src={testimonial.image || 'default-image-path.jpg'} alt={testimonial.name} />
                                     </div>
                                     <div className="client-intro">
                                         <h5 className="client-name">{testimonial.name}</h5>
@@ -80,24 +61,27 @@ const Testimonials = () => {
                             ))}
                         </div>
 
-                        <div className="show-info">
-                            {testimonials.length > 0 && (
+                        {/* Informasi testimonial aktif */}
+                        {activeTestimonial && (
+                            <div className="show-info">
                                 <div className="show-item">
                                     <div className="show-img">
-                                        <img src={testimonials[0].image} alt={testimonials[0].name} />
+                                        <img
+                                            src={activeTestimonial.image || 'default-image-path.jpg'}
+                                            alt={activeTestimonial.name}
+                                        />
                                     </div>
-
                                     <div className="show-text">
                                         <div>
-                                            <h4 className="show-name">{testimonials[0].name}</h4>
-                                            <small className="show-navigation">{testimonials[0].designation}</small>
+                                            <h4 className="show-name">{activeTestimonial.name}</h4>
+                                            <small className="show-navigation">{activeTestimonial.designation}</small>
                                         </div>
-                                        <p className="show-description">{testimonials[0].description}</p>
+                                        <p className="show-description">{activeTestimonial.description}</p>
                                         <a href="#">Inquire now</a>
                                     </div>
                                 </div>
-                            )}
-                        </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
